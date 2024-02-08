@@ -5,9 +5,9 @@ def tree(branch_len, t, level):
     if level > 0:
         t.forward(branch_len)
         t.right(20)
-        tree(branch_len - 15, t, level - 1)
+        tree(branch_len * 0.7, t, level - 1)  
         t.left(40)
-        tree(branch_len - 15, t, level - 1)
+        tree(branch_len * 0.7, t, level - 1)  
         t.right(20)
         t.backward(branch_len)
 
