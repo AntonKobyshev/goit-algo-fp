@@ -1,8 +1,8 @@
-import uuid
+from collections import deque
 import heapq
 import networkx as nx
 import matplotlib.pyplot as plt
-from collections import deque
+import uuid
 
 # Клас, що представляє вузол бінарного дерева
 class Node:
@@ -12,7 +12,6 @@ class Node:
         self.val = key 
         self.color = color 
         self.id = str(uuid.uuid4())  
-
 
 # Функція, що додає ребра та вершини до графа для відображення бінарного дерева
 def add_edges_combined(graph, node, pos, x=0, y=0, layer=1):
@@ -29,7 +28,6 @@ def add_edges_combined(graph, node, pos, x=0, y=0, layer=1):
             add_edges_combined(graph, node.right, pos, x=r, y=y - 1, layer=layer + 1)
     return graph
 
-
 # Функція для візуалізації дерев обходу у глибину та у ширину
 def draw_trees_combined(dfs_root, bfs_root):
     dfs_tree = nx.DiGraph()
@@ -43,7 +41,11 @@ def draw_trees_combined(dfs_root, bfs_root):
     dfs_colors = [node[1]["color"] for node in dfs_tree.nodes(data=True)]
     dfs_labels = {node[0]: node[1]["label"] for node in dfs_tree.nodes(data=True)}
 
-    bfs_colors = [node[1]["color"] for node in bfs_tree.nodes(data=True)]
+    bfs_colors = []
+    for node in bfs_tree.nodes(data=True):
+        if node[1]["label"] is not None:
+            bfs_colors.append(node[1]["color"])
+
     bfs_labels = {node[0]: node[1]["label"] for node in bfs_tree.nodes(data=True)}
 
     plt.figure(figsize=(12, 6))
@@ -87,7 +89,6 @@ def dfs(root):
             stack.append(node.left)
     return dfs_order
 
-
 # Функція обходу у ширину дерева
 def bfs(root):
     visited = set()
@@ -98,26 +99,31 @@ def bfs(root):
         if node and node not in visited:
             visited.add(node)
             bfs_order.append(node.val)
-            queue.append(node.left)
-            queue.append(node.right)
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
     return bfs_order
 
-
-# Функція оновлення кольорів вузлів дерева відповідно до послідовності обходу
 def update_node_colors_by_order_new(root, order):
-    order_dict = {val: idx for idx, val in enumerate(order)}
-
-    def update_colors(node):
+    color_palette = plt.cm.Blues  # Використовуємо палітру кольорів
+    max_order = len(order)
+    for idx, val in enumerate(order):
+        node = find_node(root, val)
         if node:
-            color_intensity = order_dict[node.val] / len(order)
-            node.color = (0.3, 0.6, 0.9 - color_intensity * 0.9)  
-            update_colors(node.left)
-            update_colors(node.right)
+            color_intensity = idx / max_order
+            node.color = color_palette(color_intensity)[:3]  # Беремо лише перші три значення RGB
 
-    update_colors(root)
+def find_node(root, val):
+    if root is None:
+        return None
+    if root.val == val:
+        return root
+    left_search = find_node(root.left, val)
+    if left_search:
+        return left_search
+    return find_node(root.right, val)
 
-
-# Функція копіювання дерева
 def copy_tree(node):
     if node is None:
         return None
@@ -126,8 +132,6 @@ def copy_tree(node):
     new_node.right = copy_tree(node.right)
     return new_node
 
-
-# Функція побудови бінарного дерева з вхідного масиву
 def build_heap_tree(heap, i=0):
     if i < len(heap):
         node = Node(heap[i])
@@ -136,8 +140,6 @@ def build_heap_tree(heap, i=0):
         return node
     return None
 
-
-# Основна функція
 def main():
     heap_array = [1, 5, 4, 7, 10, 12, 24, 11, 7, 1, 2, 5, 13, 17, 8]
     heapq.heapify(heap_array)
@@ -152,7 +154,6 @@ def main():
     update_node_colors_by_order_new(bfs_tree_root, bfs_order)
 
     draw_trees_combined(dfs_tree_root, bfs_tree_root)
-
 
 if __name__ == "__main__":
     main()
